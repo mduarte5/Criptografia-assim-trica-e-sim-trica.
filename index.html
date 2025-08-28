@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Criptografia Simétrica-AES-256</title>
+</head>
+<body>
+<h2>Criptografia Simétrica (AES 256 bits)</h2>
+<label for="mensagem">digite uma frase:</label><br>
+<input type="text" id="mensagem" size="40">
+<button onclick="executar()">cifrar e decifrar</button>
+<pre id="saida"></pre>
+<script>
+async function executar() {
+const saida = document.getElementById("saida");
+const mensagem = document.getElementById("mensagem").value;
+if (!mensagem) {
+saida.textContent = "digite uma frase primeiro.";
+return;
+}
+const chave = await crypto.subtle.generateKey(
+{ name: "AES-GCM", length: 256 },
+true,
+["encrypt", "decrypt"]
+);
+const iv = crypto.getRandomValues(new Uint8Array(12));
+const cifrada = await crypto.subtle.encrypt(
+{ name: "AES-GCM", iv },
+chave,
+new TextEncoder().encode(mensagem)
+);
+const decifradaBuffer = await crypto.subtle.decrypt(
+{ name: "AES-GCM", iv },
+chave,
+cifrada
+);
+const decifrada = new TextDecoder().decode(decifradaBuffer);
+const chaveRaw = await crypto.subtle.exportKey("raw", chave);
+const chaveBase64 = btoa(String.fromCharCode(...new Uint8Array(chaveRaw)));
+saida.textContent =
+"Chave AES-256: " + chaveBase64 + "\n\n" +
+"Mensagem original: " + mensagem + "\n\n" +
+"Mensagem cifrada: " + btoa(String.fromCharCode(...new Uint8Array(cifrada))) + "\n\n" +
+"Mensagem decifrada: " + decifrada;
+}
+</script>
+</body>
+</html>

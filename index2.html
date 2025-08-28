@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Criptografia Assimétrica - RSA</title>
+</head>
+<body>
+<h2>Criptografia Assimétrica (RSA-OAEP)</h2>
+<label for="mensagem">Digite uma frase:</label><br>
+<input type="text" id="mensagem" size="40">
+<button onclick="executar()">Cifrar e Decifrar</button>
+<pre id="saida"></pre>
+<script>
+async function executar() {
+const saida = document.getElementById("saida");
+const mensagem = document.getElementById("mensagem").value;
+if (!mensagem) {
+saida.textContent = "digite uma frase primeiro.";
+return;
+}
+const parChaves = await crypto.subtle.generateKey(
+{
+name: "RSA-OAEP",
+modulusLength: 2048,
+publicExponent: new Uint8Array([1, 0, 1]),
+hash: "SHA-256",
+},
+true,
+["encrypt", "decrypt"]
+);
+const cifrada = await crypto.subtle.encrypt(
+{ name: "RSA-OAEP" },
+parChaves.publicKey,
+new TextEncoder().encode(mensagem)
+);
+const decifradaBuffer = await crypto.subtle.decrypt(
+{ name: "RSA-OAEP" },
+parChaves.privateKey,
+cifrada
+);
+const decifrada = new TextDecoder().decode(decifradaBuffer);
+const chavePublica = await crypto.subtle.exportKey("spki", parChaves.publicKey);
+const chavePrivada = await crypto.subtle.exportKey("pkcs8", parChaves.privateKey);
+const pubBase64 = btoa(String.fromCharCode(...new Uint8Array(chavePublica)));
+const privBase64 = btoa(String.fromCharCode(...new Uint8Array(chavePrivada)));
+saida.textContent =
+"Chave Pública:\n" + pubBase64 + "\n\n" +
+"Chave Privada:\n" + privBase64 + "\n\n" +
+"Mensagem cifrada: " + btoa(String.fromCharCode(...new Uint8Array(cifrada))) + "\n\n" +
+"Mensagem decifrada: " + decifrada;}
+</script>
+</body>
+</html>
